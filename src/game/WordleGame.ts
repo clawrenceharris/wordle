@@ -2,29 +2,25 @@ import { LetterStatus } from "@/types";
 import { GameState } from "@/types/game";
 
 export class WordleGame {
-  guesses: Word[] = [];
+  guesses: Word[];
   solution: Word | null = null;
   state: GameState;
-  wins: number = 0;
-
-  constructor() {
-    this.state = GameState.IDLE;
+  constructor(
+    solution: Word | null = null,
+    state: GameState = GameState.IDLE,
+    guesses: Word[] = []
+  ) {
+    this.solution = solution;
+    this.guesses = guesses;
+    this.state = state;
   }
-  addGuess(guess: string) {
-    if (!this.solution) return;
-    this.guesses.push(new Word(guess, this));
-    if (guess.toUpperCase() === this.solution.word) {
-      this.wins++;
-      this.state = GameState.WON;
-    } else if (this.guesses.length >= 6) {
-      this.state = GameState.LOST;
-    }
+  makeGuess(guess: Word) {
+    const newGuesses = [...this.guesses, guess];
+    return new WordleGame(this.solution, this.state, newGuesses);
   }
 
   start(solution: string) {
-    this.guesses = [];
-    this.solution = new Word(solution, this);
-    this.state = GameState.PLAYING;
+    return new WordleGame(new Word(solution, this), GameState.PLAYING);
   }
 }
 export class Word {
@@ -38,12 +34,13 @@ export class Word {
       this.letters.push(new Letter(word[i], this.getLetterStatus(word[i], i)));
     }
   }
+
   getLetterStatus = (letter: string, index: number): LetterStatus => {
     if (!this.context.solution) return "empty";
     const other = this.context.solution.letters[index].letter;
-    if (other.toUpperCase() === letter.toUpperCase()) {
+    if (other === letter) {
       return "correct";
-    } else if (this.context.solution.word.includes(letter.toUpperCase())) {
+    } else if (this.context.solution.word.includes(letter)) {
       return "present";
     }
     return "absent";
@@ -54,7 +51,7 @@ class Letter {
   letter: string;
   status: LetterStatus;
   constructor(letter: string, status: LetterStatus) {
-    this.letter = letter;
+    this.letter = letter.toUpperCase();
     this.status = status;
   }
   setStatus(status: LetterStatus) {

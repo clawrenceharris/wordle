@@ -1,26 +1,27 @@
 import { cn } from "@/lib/utils";
 import { LetterStatus } from "@/types";
-import { getStatusColor } from "@/utils";
 import { KeyStatus } from "./Keyboard";
+import { forwardRef } from "react";
 
-export const Tile = ({
-  letter,
-  status,
-  className,
-}: {
+interface TileProps {
   letter?: string;
   status?: LetterStatus | KeyStatus;
   className?: string;
-}) => {
-  return (
-    <div
-      className={cn(
-        "w-9 h-9 md:w-13 md:h-13 rounded-md  flex items-center justify-center ",
-        getStatusColor(status),
-        className
-      )}
-    >
-      {letter || null}
-    </div>
-  );
-};
+}
+
+// eslint-disable-next-line react/display-name
+export const Tile = forwardRef<HTMLDivElement, TileProps>(
+  ({ letter, className }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          "tile bg-background w-full h-full flex items-center justify-center  font-bold text-lg  md:text-xl",
+          className
+        )}
+      >
+        {letter}
+      </div>
+    );
+  }
+);

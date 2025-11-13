@@ -18,8 +18,9 @@ export const Keyboard = () => {
         return;
       }
       if (key === "Enter") {
-        makeGuess(lettersEntered.join(""));
-        clearLetters();
+        makeGuess(lettersEntered.join("")).then(() => {
+          clearLetters();
+        });
       } else if (key === "Backspace") {
         deleteLetter();
       } else {
@@ -80,6 +81,7 @@ export const Keyboard = () => {
 
             return (
               <Key
+                disabled={!isPlaying}
                 status={isSpecial ? "default" : getKeyStatus(key)}
                 myKey={key}
                 key={key}

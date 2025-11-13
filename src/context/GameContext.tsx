@@ -1,11 +1,12 @@
 "use client";
 import { Word, WordleGame } from "@/game/WordleGame";
-import { WordService } from "@/services/WordService";
+import { useWordle } from "@/hooks/useWordle";
+import { GameState } from "@/types/game";
 import React, {
   createContext,
   useCallback,
   useContext,
-  useMemo,
+  useReducer,
   useState,
 } from "react";
 
@@ -14,10 +15,11 @@ interface GameProviderProps {
 }
 interface GameContextType {
   winCount: number;
-  solution: Word;
+  solution: Word | null;
   guesses: Word[];
-  makeGuess: (guess: string) => void;
+  makeGuess: (guess: string) => Promise<void>;
   startGame: () => void;
+  changeDate: (date: Date) => void;
   isLoading: boolean;
   wordLength: number;
   isPlaying: boolean;
@@ -27,34 +29,44 @@ const WORD_LENGTH = 5;
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const GameProvider = ({ children }: GameProviderProps) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const game = useMemo(() => new WordleGame(), []);
+  const [winCount, setWinCount] = useState(0);
+  const [date, setDate] = useState<Date>(new Date());
+  const { validateWord, wotd, isLoading, error } = useWordle(date);
+
+  function gameReducer(
+    game: WordleGame,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    action: { type: "win" | "guess" | "start"; payload?: any }
+  ): WordleGame {
+    switch (action.type) {
+      case "win":
+        setWinCount((prev) => prev + 1);
+        return game;
+      case "start":
+        return game.start(action.payload);
+      case "guess":
+        return game.makeGuess(action.payload);
+      default:
+        return game;
+    }
+  }
+
+  const [game, dispatch] = useReducer(gameReducer, new WordleGame());
 
   const makeGuess = useCallback(
-    (guess: string) => {
-      game.addGuess(guess);
+    async (guess: string) => {
+      const validWord = await validateWord(guess);
+      if (!validWord) return;
+      dispatch({ type: "guess", payload: new Word(guess, game) });
     },
-    [game]
+    [game, validateWord]
   );
-
+  const changeDate = useCallback((date: Date) => {
+    setDate(date);
+  }, []);
   const startGame = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const newWord = await WordService.getWordOfTheDay();
-
-      game.start(newWord);
-    } catch (error) {
-      const errorMessaqe =
-        error instanceof Error
-          ? error.message
-          : "An error occurred while retrieving word of the day";
-      console.error(errorMessaqe);
-      setError(errorMessaqe);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [game]);
+    if (wotd) dispatch({ type: "start", payload: wotd });
+  }, [wotd]);
 
   const value = {
     isLoading,
@@ -62,9 +74,10 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     wordLength: WORD_LENGTH,
     makeGuess,
     startGame,
-    solution: game.solution || new Word("", game),
-    winCount: game.wins,
-    isPlaying: game.state === "playing",
+    changeDate,
+    solution: game.solution,
+    winCount,
+    isPlaying: game.state === GameState.PLAYING,
     error,
   };
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

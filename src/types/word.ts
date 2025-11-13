@@ -4,15 +4,8 @@ export type Letter = {
 };
 
 export type LetterStatus = "correct" | "present" | "absent" | "empty";
-export type WordResponse = {
-  _id: string;
-  word: string;
-  category: string;
-  numLetters: number;
-  numSyllables: number;
-  __v: number;
-  hint: string;
-};
-export type WordsResponse = {
-  words: WordResponse[];
+
+export type WordInfo = {
+  senses: [{ definition: string }];
+  examples: string[];
 };

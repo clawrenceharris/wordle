@@ -1,9 +1,9 @@
-import { getWordOfTheDay } from "@/utils";
+import { five_char_words } from "@/utils/word-list";
 
 export async function GET() {
-  const word = getWordOfTheDay();
+  const words = five_char_words;
 
-  return new Response(JSON.stringify({ word }), {
+  return new Response(JSON.stringify({ words }), {
     status: 200,
     headers: {
       "Content-Type": "application/json",
