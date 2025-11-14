@@ -100,7 +100,7 @@
 
 @layer base {
   body {
-    @apply font-sans bg-background overflow-hidden w-full h-screen  text-foreground;
+    @apply font-sans bg-background overflow-hidden w-full h-dvh  text-foreground;
   }
   main {
     @apply h-full min-h-full;
