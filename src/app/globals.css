@@ -5,16 +5,16 @@
   font-family: "Clear Sans";
   src: url("../assets/fonts/ClearSans-Regular.woff2") format("woff2"),
     url("../assets/fonts/ClearSans-Regular.woff") format("woff");
-  font-weight: 400;
+  font-weight: normal;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "MyCustomFont";
+  font-family: "Clear Sans";
   src: url("../assets/fonts/ClearSans-Bold.woff2") format("woff2"),
     url("../assets/fonts/ClearSans-Bold.woff") format("woff");
-  font-weight: 700;
+  font-weight: bold;
   font-style: normal;
   font-display: swap;
 }
@@ -103,7 +103,7 @@
     @apply font-sans bg-background overflow-hidden w-full h-dvh  text-foreground;
   }
   main {
-    @apply h-full min-h-full;
+    @apply h-full  min-h-full;
   }
 }
 

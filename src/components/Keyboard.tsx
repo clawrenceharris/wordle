@@ -72,9 +72,9 @@ export const Keyboard = () => {
     }
   };
   return (
-    <div className="flex flex-col  text-foreground items-center gap-2 select-none">
+    <div className="flex flex-col scale-[0.8] md:scale-[1] text-foreground items-center gap-3 select-none">
       {rows.map((row, rowIndex) => (
-        <div key={rowIndex} className="flex gap-1">
+        <div key={rowIndex} className="flex gap-1.5">
           {row.map((key) => {
             const isSpecial = key === "Enter" || key === "Backspace";
 

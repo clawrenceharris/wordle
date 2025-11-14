@@ -16,8 +16,8 @@ export const Key = ({ isSpecial, onKeyPress, status, myKey }: KeyProps) => {
       key={myKey}
       onClick={() => onKeyPress(myKey)}
       className={cn(
-        "rounded-md  min-w-9 md:min-w-13 h-13 font-semibold uppercase flex items-center justify-center transition-colors duration-200",
-        isSpecial ? "px-5 text-sm " : " text-base",
+        "rounded-md  min-w-10 md:min-w-13 h-13 font-semibold uppercase flex items-center justify-center transition-colors duration-200",
+        isSpecial ? "px-3 text-sm " : " text-base",
         getStatusColor(status)
       )}
     >
