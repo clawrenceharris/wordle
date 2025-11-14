@@ -1,4 +1,4 @@
-import React, { JSX, useEffect, useState } from "react";
+import { JSX, useEffect, useState } from "react";
 
 export const Celebration = ({ onPlayAgain }: { onPlayAgain: () => void }) => {
   const [confetti, setConfetti] = useState<JSX.Element[]>([]);
@@ -32,8 +32,6 @@ export const Celebration = ({ onPlayAgain }: { onPlayAgain: () => void }) => {
         />
       );
     }
-
-    setConfetti(newConfetti);
   }, []);
 
   return (

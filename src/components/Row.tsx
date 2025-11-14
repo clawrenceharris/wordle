@@ -1,7 +1,7 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 
 import { useGame, useKeyboard } from "@/context";
-import { EmptyTile, KeyTile, LetterTile } from "./";
+import { Tile } from "./";
 
 interface RowProps {
   index: number;
@@ -23,7 +23,11 @@ export const Row = ({ index }: RowProps) => {
     return (
       <div className="gap-2 flex">
         {solution.letters.map((_, i) => (
-          <EmptyTile key={i} />
+          <Tile
+            className="border-2 border-tile-border"
+            status="empty"
+            key={i}
+          />
         ))}
       </div>
     );
@@ -31,7 +35,7 @@ export const Row = ({ index }: RowProps) => {
     return (
       <div className="gap-2 flex">
         {guesses?.[index].letters.map((letter, i) => (
-          <LetterTile key={i} letter={letter} />
+          <Tile key={i} letter={letter.letter} status={letter.status} />
         ))}
       </div>
     );
@@ -40,9 +44,21 @@ export const Row = ({ index }: RowProps) => {
     <div className="gap-2 flex">
       {solution.letters.map((_, i) => {
         if (lettersEntered[i]) {
-          return <KeyTile key={i} letter={lettersEntered[i]} />;
+          return (
+            <Tile
+              className="border-2 border-tile-border"
+              key={i}
+              letter={lettersEntered[i]}
+            />
+          );
         }
-        return <EmptyTile key={i} />;
+        return (
+          <Tile
+            className="border-2 border-tile-border"
+            status="empty"
+            key={i}
+          />
+        );
       })}
     </div>
   );

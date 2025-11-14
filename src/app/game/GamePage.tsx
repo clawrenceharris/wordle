@@ -13,8 +13,9 @@ export default function GamePage() {
   }
   return (
     <KeyboardProvider solution={solution}>
-      <div className=" w-full max-w-sm gap-10 space-y-6  text-center mx-auto">
+      <div className="flex flex-col w-full h-full max-w-sm gap-9 md:gap-10 justify-evenly text-center mx-auto">
         <GameHeader winCount={winCount} onRestart={startGame} />
+
         <GameBoard />
         <Keyboard />
       </div>
