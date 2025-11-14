@@ -1,0 +1,150 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@font-face {
+  font-family: "Clear Sans";
+  src: url("../assets/fonts/ClearSans-Regular.woff2") format("woff2"),
+    url("../assets/fonts/ClearSans-Regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "MyCustomFont";
+  src: url("../assets/fonts/ClearSans-Bold.woff2") format("woff2"),
+    url("../assets/fonts/ClearSans-Bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: "Clear Sans", sans-serif;
+}
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-primary-400: var(--primary-400);
+  --color-primary-500: var(--primary-500);
+  --color-primary-600: var(--primary-600);
+
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-tile-border: var(--tile-border);
+  --color-border: var(--border);
+
+  --color-input: var(--input);
+
+  --color-ring: var(--ring);
+
+  --color-tile-correct: var(--tile-correct);
+  --color-tile-present: var(--tile-present);
+  --color-tile-absent: var(--tile-absent);
+  --color-tile-empty: var(--tile-empty);
+  --color-key: var(--key);
+}
+
+:root {
+  --background: #f9fafb;
+  --foreground: #1f2937;
+
+  --card: #ffffff;
+  --card-foreground: #1f2937;
+  --primary-400: #54d47b;
+
+  --primary-500: #5fd282;
+  --primary-600: #2c964b;
+  --primary-foreground: #f9fafb;
+
+  --secondary: #e2e8f0;
+  --secondary-foreground: #1f2937;
+
+  --accent: #60a5fa;
+  --accent-foreground: #1e3a8a;
+
+  --muted: #f3f4f6;
+  --muted-foreground: #4b5563;
+
+  --destructive: #ef4444;
+  --destructive-foreground: #f9fafb;
+  --border: #707274;
+  --input: #e5e7eb;
+  --ring: #2563eb;
+
+  /* Game colors */
+  --tile-correct: #6aaa64;
+  --tile-present: #c9b458;
+  --tile-absent: #696c6e;
+  --key: #47494a;
+  --tile-border: #666666;
+
+  --tile-empty: #d3d6da;
+  --key: #e2e8f0;
+}
+
+@layer base {
+  body {
+    @apply font-sans bg-background overflow-hidden w-full h-screen  text-foreground;
+  }
+  main {
+    @apply h-full min-h-full;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-6 py-3 relative inline-flex items-center cursor-pointer justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-150 ease-in-out focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0;
+  }
+  .btn-primary {
+    @apply font-semibold text-white py-2 px-5
+           bg-primary-400
+           shadow-[0_6px_0_var(--color-primary-600)]
+           
+           hover:-translate-y-0.5 hover:shadow-[0_8px_0_var(--color-primary-600)]
+           active:translate-y-[3px] active:shadow-[0_1px_0_var(--color-primary-600)];
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #121213;
+    --foreground: #f9fafb;
+
+    --card: #1a1a1a;
+    --card-foreground: #f9fafb;
+
+    --primary-foreground: #f9fafb;
+
+    --secondary-foreground: #f9fafb;
+
+    --accent-foreground: #1e3a8a;
+
+    --muted: #1f2937;
+    --muted-foreground: #9ca3af;
+
+    --destructive-foreground: #f9fafb;
+    --border: #a0a3a5;
+
+    --input: #27272a;
+    --tile-absent: #3a3a3c;
+    --tile-border: #666666;
+    --key-unused: #47494a;
+    --key: #818385;
+  }
+}
