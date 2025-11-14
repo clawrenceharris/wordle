@@ -6,7 +6,7 @@ interface GameHeaderProps {
 }
 export const GameHeader = ({ winCount, onRestart }: GameHeaderProps) => {
   return (
-    <div className="flex items-center justify-evenly w-full">
+    <div className="p-5 flex items-center justify-evenly w-full">
       <h2>Wins: {winCount}</h2>
       <button
         onClick={onRestart}
