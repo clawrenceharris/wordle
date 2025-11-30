@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Button, Input, Label } from "./ui";
 import { Copy, Loader2 } from "lucide-react";
-import { toast } from "sonner";
 import { useGame, useMatch } from "@/context";
 import { cn } from "@/lib/utils";
 
@@ -14,17 +13,8 @@ export const CreateMatchModal = ({
   onEndMatch,
 }: CreateMatchModalProps) => {
   const [code, setCode] = useState<string>("");
-  const { match, isLoading } = useMatch();
+  const { match, isLoading, copyCode } = useMatch();
   const { isGameOver } = useGame();
-  const handleCopy = async () => {
-    try {
-      if (!match?.code) return;
-      await navigator.clipboard.writeText(match.code);
-      toast("Code copied to clipboard!");
-    } catch {
-      toast("Failed to copy code");
-    }
-  };
 
   return (
     <>
@@ -42,7 +32,7 @@ export const CreateMatchModal = ({
             <p className="text-sm">Share this code:</p>
           </div>
           <div className="flex items-center gap-2 justify-center ">
-            <Button onClick={handleCopy} variant="ghost">
+            <Button onClick={copyCode} variant="ghost">
               <Copy />
               <p>{match.code}</p>
             </Button>

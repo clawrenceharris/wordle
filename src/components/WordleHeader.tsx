@@ -1,12 +1,12 @@
 "use client";
 import { useModal, useMatch, useGame } from "@/context";
-import { Loader2 } from "lucide-react";
+import { Copy, Loader2, MoreVertical } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { CreateMatchModal, Button, CalendarButton } from "@/components";
 
 export const WordleHeader = () => {
-  const { startMatch, isLoading, match, leaveMatch } = useMatch();
+  const { startMatch, isLoading, match, leaveMatch, copyCode } = useMatch();
   const { date, game, changeDate, isGameOver } = useGame();
   const { openModal, closeModal } = useModal();
 
@@ -44,7 +44,7 @@ export const WordleHeader = () => {
       </Link>
       <h1 className="text-4xl font-bold">Wordle</h1>
       <div className="flex items-center gap-2">
-        {game && (
+        {game && !match && (
           <CalendarButton showsDate={false} date={date} onChange={changeDate} />
         )}
         {!match ? (
@@ -65,9 +65,19 @@ export const WordleHeader = () => {
             <Button
               className="bg-foreground/10"
               variant="ghost"
+              disabled={isGameOver}
+              onClick={copyCode}
+            >
+              {!isGameOver && <Copy />}
+              {!isGameOver ? match.code : "Match Ended"}
+            </Button>
+            <Button
+              className="bg-foreground/10"
+              variant="ghost"
+              size="icon"
               onClick={handleOpenModal}
             >
-              {!isGameOver ? match.code : "Match Ended"}
+              <MoreVertical />
             </Button>
           </>
         )}

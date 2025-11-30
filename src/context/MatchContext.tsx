@@ -12,6 +12,7 @@ import { supabase } from "@/lib/supabase";
 import { pickWordFromSeed } from "@/utils";
 import { useAction } from "@/hooks";
 import { Match } from "@/types";
+import { toast } from "sonner";
 
 interface MatchContextProps {
   match: Match | null;
@@ -19,6 +20,7 @@ interface MatchContextProps {
   startMatch: (code?: string) => Promise<Match | null>;
   leaveMatch: (code: string) => Promise<void>;
   deleteMatch: (code: string) => Promise<void>;
+  copyCode: () => Promise<void>;
 }
 
 const MatchContext = createContext<MatchContextProps | undefined>(undefined);
@@ -46,7 +48,15 @@ export const MatchProvider = ({ children }: { children: React.ReactNode }) => {
     },
     [playerId, run]
   );
-
+  const copyCode = async () => {
+    try {
+      if (!match?.code) return;
+      await navigator.clipboard.writeText(match.code);
+      toast("Code copied to clipboard!");
+    } catch {
+      toast("Failed to copy code");
+    }
+  };
   const deleteMatch = async (code: string) => {
     await run(() => MatchService.deleteMatch(code));
     setMatch(null);
@@ -75,6 +85,7 @@ export const MatchProvider = ({ children }: { children: React.ReactNode }) => {
     startMatch,
     leaveMatch,
     deleteMatch,
+    copyCode,
   };
   return (
     <MatchContext.Provider value={value}>{children}</MatchContext.Provider>

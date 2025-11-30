@@ -43,21 +43,20 @@ export class WordleMatch extends WordleGame {
     this.match = match;
     this.playerId = playerId;
   }
-  isSolved() {
-    const opponentId = this.match.players.find((id) => id !== this.playerId);
-    const opponentSolved = this.match.guesses[opponentId || ""]?.some(
-      (guess) => guess === this.solution
-    );
-    return super.isSolved() || opponentSolved;
-  }
 
   override isOver() {
     const opponentId = this.match.players.find((id) => id !== this.playerId);
     if (!opponentId) return false;
+    const opponentSolved = (this.match.guesses?.[opponentId] || []).some(
+      (g) => g === this.solution
+    );
+    if (this.isSolved() || opponentSolved) {
+      return true;
+    }
+
     return (
-      super.isOver() ||
-      this.match.guesses[opponentId]?.length >= this.maxGuesses ||
-      (this.match.guesses?.[opponentId] || []).some((g) => g === this.solution)
+      this.match.guesses[opponentId]?.length >= this.maxGuesses &&
+      this.match.guesses[this.playerId]?.length >= this.maxGuesses
     );
   }
   async addGuess(guess: string) {
