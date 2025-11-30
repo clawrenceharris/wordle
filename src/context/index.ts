@@ -1,3 +1,6 @@
-export { ThemeProvider, useTheme } from "./ThemeContext";
-export { GameProvider, useGame } from "./GameContext";
-export { KeyboardProvider, useKeyboard } from "./KeyboardContext";
+export * from "./ThemeContext";
+export * from "./GameContext";
+export * from "./KeyboardContext";
+export * from "./ModalContext";
+export * from "./MatchContext";
+export * from "./PlayerContext";

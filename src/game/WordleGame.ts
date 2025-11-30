@@ -1,60 +1,91 @@
-import { LetterStatus } from "@/types";
-import { GameState } from "@/types/game";
+import { MatchService } from "@/services/match-service";
+import { GameStatus, GuessWithFeedback, Match } from "@/types";
+import { pickWordFromSeed, toGuessWithFeedback } from "@/utils";
 
 export class WordleGame {
-  guesses: Word[];
-  solution: Word | null = null;
-  state: GameState;
-  constructor(
-    solution: Word | null = null,
-    state: GameState = GameState.IDLE,
-    guesses: Word[] = []
-  ) {
-    this.solution = solution;
-    this.guesses = guesses;
-    this.state = state;
-  }
-  makeGuess(guess: Word) {
-    const newGuesses = [...this.guesses, guess];
-    return new WordleGame(this.solution, this.state, newGuesses);
+  seed: Date | string;
+  maxGuesses: number = 6;
+  solution: string;
+  guesses: GuessWithFeedback[] = [];
+  playerId: string;
+  status: GameStatus = "playing";
+  winner: string | null = null;
+
+  constructor(playerId: string, seed: Date | string, guesses: string[] = []) {
+    this.seed = seed;
+    this.playerId = playerId;
+    this.solution = pickWordFromSeed(this.seed);
+
+    this.guesses = guesses.map((guess) => {
+      return toGuessWithFeedback(guess, this.solution);
+    });
   }
 
-  start(solution: string) {
-    return new WordleGame(new Word(solution, this), GameState.PLAYING);
+  async addGuess(guess: string) {
+    const newGuess = toGuessWithFeedback(guess, this.solution);
+    this.guesses = [...this.guesses, newGuess];
+  }
+  isSolved() {
+    return this.guesses.some((guess) =>
+      guess.every((letter) => letter.status === "correct")
+    );
+  }
+  isOver() {
+    return this.isSolved() || this.guesses.length >= this.maxGuesses;
   }
 }
-export class Word {
-  word: string;
-  letters: Letter[] = [];
-  context: WordleGame;
-  constructor(word: string, context: WordleGame) {
-    this.context = context;
-    this.word = word.toUpperCase();
-    for (let i = 0; i < word.length; i++) {
-      this.letters.push(new Letter(word[i], this.getLetterStatus(word[i], i)));
-    }
+
+export class WordleMatch extends WordleGame {
+  match: Match;
+  winner: string | null = null;
+  constructor(match: Match, playerId: string) {
+    super(playerId, match.code, match.guesses?.[playerId] || []);
+    this.match = match;
+    this.playerId = playerId;
+  }
+  isSolved() {
+    const opponentId = this.match.players.find((id) => id !== this.playerId);
+    const opponentSolved = this.match.guesses[opponentId || ""]?.some(
+      (guess) => guess === this.solution
+    );
+    return super.isSolved() || opponentSolved;
   }
 
-  getLetterStatus = (letter: string, index: number): LetterStatus => {
-    if (!this.context.solution) return "empty";
-    const other = this.context.solution.letters[index].letter;
-    if (other === letter) {
-      return "correct";
-    } else if (this.context.solution.word.includes(letter)) {
-      return "present";
-    }
-    return "absent";
-  };
-}
-
-class Letter {
-  letter: string;
-  status: LetterStatus;
-  constructor(letter: string, status: LetterStatus) {
-    this.letter = letter.toUpperCase();
-    this.status = status;
+  override isOver() {
+    const opponentId = this.match.players.find((id) => id !== this.playerId);
+    if (!opponentId) return false;
+    return (
+      super.isOver() ||
+      this.match.guesses[opponentId]?.length >= this.maxGuesses ||
+      (this.match.guesses?.[opponentId] || []).some((g) => g === this.solution)
+    );
   }
-  setStatus(status: LetterStatus) {
-    this.status = status;
+  async addGuess(guess: string) {
+    // Builds the optimistic feedback locally so the UI updates immediately
+    const newGuess = toGuessWithFeedback(guess, this.solution);
+
+    // Snapshots to allow revert if the network call fails
+    const prevGuesses = [...this.guesses];
+    const prevMatchGuesses = {
+      ...this.match.guesses,
+      [this.playerId]: [...(this.match.guesses?.[this.playerId] || [])],
+    };
+
+    // Optimistically update local state
+    this.guesses = [...this.guesses, newGuess];
+    this.match.guesses = {
+      ...this.match.guesses,
+      [this.playerId]: [...(this.match.guesses?.[this.playerId] || []), guess],
+    };
+
+    try {
+      // Persist to server
+      await MatchService.addGuess(this.match.code, this.playerId, guess);
+    } catch (err) {
+      // Revert local optimistic update on failure
+      this.guesses = prevGuesses;
+      this.match.guesses = prevMatchGuesses;
+      throw err;
+    }
   }
 }

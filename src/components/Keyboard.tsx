@@ -1,74 +1,62 @@
 import React, { useCallback, useEffect } from "react";
-import { Key } from "./";
-import { useGame, useKeyboard } from "@/context";
+import { Key } from "@/components";
+import { useKeyboard } from "@/context";
+import { GuessWithFeedback, LetterStatus } from "@/types";
+
 export type KeyStatus = "absent" | "present" | "correct" | "default";
 const rows = [
   ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
   ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
   ["Enter", "Z", "X", "C", "V", "B", "N", "M", "Backspace"],
 ];
-
-export const Keyboard = () => {
-  const { addLetter, deleteLetter, clearLetters, lettersEntered } =
-    useKeyboard();
-  const { makeGuess, guesses, isPlaying } = useGame();
+interface KeyboardProps {
+  onSubmit: (word: string) => void;
+  guesses: GuessWithFeedback[];
+}
+export const Keyboard = ({ onSubmit, guesses }: KeyboardProps) => {
+  const { addLetter, disabled, deleteLetter, lettersEntered } = useKeyboard();
   const handleKeyPressed = useCallback(
-    (key: string) => {
-      if (!isPlaying) {
+    async (key: string) => {
+      if (disabled) {
         return;
       }
       if (key === "Enter") {
-        makeGuess(lettersEntered.join("")).then(() => {
-          clearLetters();
-        });
-      } else if (key === "Backspace") {
-        deleteLetter();
-      } else {
-        addLetter(key);
+        return onSubmit(lettersEntered.join("").toUpperCase());
       }
+      if (key === "Backspace") {
+        return deleteLetter();
+      }
+
+      addLetter(key);
     },
-    [
-      isPlaying,
-      makeGuess,
-      lettersEntered,
-      clearLetters,
-      deleteLetter,
-      addLetter,
-    ]
+    [addLetter, deleteLetter, disabled, lettersEntered, onSubmit]
   );
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const key = e.key.toUpperCase();
-      if (/^[A-Z]$/.test(key) || key === "ENTER" || key === "BACKSPACE") {
+      const key = e.key;
+      if (/^[a-zA-Z]$/.test(key) || key === "Enter" || key === "Backspace") {
         e.preventDefault();
-        handleKeyPressed(
-          key === "ENTER" ? "Enter" : key === "BACKSPACE" ? "Backspace" : key
-        );
+        handleKeyPressed(key);
       }
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyDown);
+    return () => window.removeEventListener("keyup", handleKeyDown);
   }, [handleKeyPressed]);
+
+  const checkLetterFeedback = (letter: string, feedback: LetterStatus) => {
+    return guesses.some((g) =>
+      g.some((l) => l.letter === letter && l.status === feedback)
+    );
+  };
+
   const getKeyStatus = (key: string): KeyStatus => {
-    if (
-      guesses.some((w) =>
-        w.letters.some((l) => l.letter === key && l.status === "correct")
-      )
-    ) {
+    if (checkLetterFeedback(key, "correct")) {
       return "correct";
-    } else if (
-      guesses.some((w) =>
-        w.letters.some((l) => l.letter === key && l.status === "present")
-      )
-    )
+    } else if (checkLetterFeedback(key, "present")) {
       return "present";
-    else if (
-      guesses.some((w) =>
-        w.letters.some((l) => l.letter === key && l.status === "absent")
-      )
-    )
+    } else if (checkLetterFeedback(key, "absent")) {
       return "absent";
-    else {
+    } else {
       return "default";
     }
   };
@@ -81,7 +69,7 @@ export const Keyboard = () => {
 
             return (
               <Key
-                disabled={!isPlaying}
+                disabled={disabled && !isSpecial}
                 status={isSpecial ? "default" : getKeyStatus(key)}
                 myKey={key}
                 key={key}

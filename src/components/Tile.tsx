@@ -4,7 +4,7 @@ import { KeyStatus } from "./Keyboard";
 import { forwardRef } from "react";
 
 interface TileProps {
-  letter?: string;
+  letter?: string | null;
   status?: LetterStatus | KeyStatus;
   className?: string;
 }
@@ -13,13 +13,7 @@ interface TileProps {
 export const Tile = forwardRef<HTMLDivElement, TileProps>(
   ({ letter, className }, ref) => {
     return (
-      <div
-        ref={ref}
-        className={cn(
-          "tile bg-background w-full h-full flex items-center justify-center  font-bold text-lg  md:text-xl",
-          className
-        )}
-      >
+      <div ref={ref} className={cn("tile bg-background", className)}>
         {letter}
       </div>
     );

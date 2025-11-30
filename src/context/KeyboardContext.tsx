@@ -1,36 +1,33 @@
 "use client";
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { createContext, useContext, useState } from "react";
-import { Word } from "@/game/WordleGame";
+import { useGame } from "./GameContext";
 
 type KeyboardContextType = {
   lettersEntered: string[];
   deleteLetter: () => void;
   addLetter: (letter: string) => void;
   clearLetters: () => void;
+  disabled: boolean;
 };
 interface KeyboardProviderProps {
-  solution: Word;
   children: React.ReactNode;
 }
 const KeyboardContext = createContext<KeyboardContextType | undefined>(
   undefined
 );
 
-export const KeyboardProvider = ({
-  children,
-  solution,
-}: KeyboardProviderProps) => {
+export const KeyboardProvider = ({ children }: KeyboardProviderProps) => {
+  const { game } = useGame();
   const [lettersEntered, setLettersEntered] = useState<string[]>([]);
+  const disabled = useMemo(() => game.isOver(), [game]);
 
   const addLetter = useCallback(
     (letter: string) => {
-      if (solution.letters.length === lettersEntered.length) {
-        return;
-      }
+      if (disabled || game.solution.length === lettersEntered.length) return;
       setLettersEntered((prev) => [...prev, letter]);
     },
-    [solution.letters.length, lettersEntered.length]
+    [disabled, game.solution.length, lettersEntered.length]
   );
   const deleteLetter = useCallback(() => {
     setLettersEntered((prev) => [...prev.slice(0, prev.length - 1)]);
@@ -39,7 +36,13 @@ export const KeyboardProvider = ({
     setLettersEntered([]);
   }, []);
 
-  const value = { lettersEntered, addLetter, deleteLetter, clearLetters };
+  const value = {
+    lettersEntered,
+    disabled,
+    addLetter,
+    deleteLetter,
+    clearLetters,
+  };
 
   return (
     <KeyboardContext.Provider value={value}>

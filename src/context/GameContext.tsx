@@ -1,92 +1,122 @@
 "use client";
-import { Word, WordleGame } from "@/game/WordleGame";
-import { useWordle } from "@/hooks/useWordle";
-import { GameState } from "@/types/game";
-import React, {
+import {
   createContext,
-  useCallback,
   useContext,
-  useReducer,
   useState,
+  useCallback,
+  useMemo,
 } from "react";
+import { wordService } from "@/services";
+import { WordleMatch, WordleGame } from "@/game";
+import { usePlayer, useMatch } from "@/context";
 
-interface GameProviderProps {
-  children: React.ReactNode;
-}
-interface GameContextType {
-  winCount: number;
-  solution: Word | null;
-  guesses: Word[];
-  makeGuess: (guess: string) => Promise<void>;
-  startGame: () => void;
+interface GameContextProps {
+  game: WordleGame;
+  date: Date;
+  isGameOver: boolean;
+  message: string | null;
+
+  clearMessage: () => void;
+  showMessage: (message: string) => void;
   changeDate: (date: Date) => void;
-  isLoading: boolean;
-  wordLength: number;
-  isPlaying: boolean;
-  error: string | null;
+  submitGuess: (word: string) => Promise<void>;
 }
-const WORD_LENGTH = 5;
-const GameContext = createContext<GameContextType | undefined>(undefined);
 
-export const GameProvider = ({ children }: GameProviderProps) => {
-  const [winCount, setWinCount] = useState(0);
-  const [date, setDate] = useState<Date>(new Date());
-  const { validateWord, wotd, isLoading, error } = useWordle(date);
+const GameContext = createContext<GameContextProps | undefined>(undefined);
 
-  function gameReducer(
-    game: WordleGame,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    action: { type: "win" | "guess" | "start"; payload?: any }
-  ): WordleGame {
-    switch (action.type) {
-      case "win":
-        setWinCount((prev) => prev + 1);
-        return game;
-      case "start":
-        return game.start(action.payload);
-      case "guess":
-        return game.makeGuess(action.payload);
-      default:
-        return game;
+export const GameProvider = ({ children }: { children: React.ReactNode }) => {
+  const [message, setMessage] = useState<string | null>(null);
+  const { match } = useMatch();
+  const { playerId } = usePlayer();
+  const [date, setDate] = useState<Date>(() => {
+    let stored: string | null = null;
+    try {
+      stored = sessionStorage.getItem("wordleDate");
+    } catch {}
+    return stored ? new Date(stored) : new Date();
+  });
+
+  const game = useMemo(() => {
+    if (match) {
+      const newGame = new WordleMatch(match, playerId);
+
+      return newGame;
+    } else {
+      const seed = date.toISOString().slice(0, 10);
+      const newGame = new WordleGame(playerId, seed);
+      return newGame;
     }
-  }
+  }, [date, match, playerId]);
 
-  const [game, dispatch] = useReducer(gameReducer, new WordleGame());
+  const isGameOver = useMemo(
+    () => game.isOver() || game.status === "finished",
+    [game]
+  );
 
-  const makeGuess = useCallback(
+  const validateWord = useCallback(
+    async (guess: string): Promise<void> => {
+      if (!game) return;
+      if (guess.length < game.solution.length) {
+        throw new Error("Not enough letters");
+      }
+
+      const validEnglishWord = await wordService.validateWord(guess);
+      if (!validEnglishWord) {
+        throw new Error("Not in word list");
+      }
+    },
+    [game]
+  );
+
+  const clearMessage = useCallback(() => {
+    setMessage(null);
+  }, []);
+
+  const submitGuess = useCallback(
     async (guess: string) => {
-      const validWord = await validateWord(guess);
-      if (!validWord) return;
-      dispatch({ type: "guess", payload: new Word(guess, game) });
+      try {
+        if (!game) return;
+        await validateWord(guess);
+        await game.addGuess(guess);
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Something went wrong.";
+        setMessage(errorMessage);
+
+        throw new Error(errorMessage); //rethrow error for calling function
+      }
     },
     [game, validateWord]
   );
+
+  const showMessage = useCallback((message: string) => {
+    setMessage(message);
+  }, []);
+
   const changeDate = useCallback((date: Date) => {
     setDate(date);
+    // const seed = date.toISOString().slice(0, 10);
+    // const newGame = new WordleGame(initialGameState, seed);
+    // setGame(newGame);
   }, []);
-  const startGame = useCallback(async () => {
-    if (wotd) dispatch({ type: "start", payload: wotd });
-  }, [wotd]);
 
   const value = {
-    isLoading,
-    guesses: game.guesses,
-    wordLength: WORD_LENGTH,
-    makeGuess,
-    startGame,
+    message,
+    game,
+    date,
+    isGameOver,
+
+    clearMessage,
     changeDate,
-    solution: game.solution,
-    winCount,
-    isPlaying: game.state === GameState.PLAYING,
-    error,
+    submitGuess,
+    showMessage,
   };
+
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 };
 
 export const useGame = () => {
-  const context = useContext(GameContext);
-  if (!context) {
-    throw new Error("useGame must be used within a GameProvider");
-  }
-  return context;
+  const ctx = useContext(GameContext);
+  if (!ctx) throw new Error("useGame must be used within GameProvider");
+  return ctx;
 };
