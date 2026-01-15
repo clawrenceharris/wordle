@@ -6,6 +6,40 @@ First, run the development server:
 
 ```bash
 npm run dev
+```
+
+# Wordle Clone
+
+A small Wordle-style word guessing game built with Next.js. Play a daily (or local random) five-letter puzzle, get feedback on each guess, and try to solve it in six attempts.
+
+## Features
+
+- 5-letter word guesses with color-coded feedback (correct, present, absent)
+- Keyboard and on-screen input support
+- Built with Next.js (App Router) and TypeScript
+
+## Demo
+
+Run locally and open http://localhost:3000.
+
+## Getting Started
+
+Install dependencies:
+
+```bash
+npm install
+# or
+yarn install
+# or
+pnpm install
+# or
+bun install
+```
+
+Run the development server:
+
+```bash
+npm run dev
 # or
 yarn dev
 # or
@@ -13,6 +47,27 @@ pnpm dev
 # or
 bun dev
 ```
+
+## Gameplay
+
+- Guess a five-letter word each turn.
+- Tiles show:
+  - Green: correct letter in correct position
+  - Yellow: letter present but wrong position
+  - Gray: letter not in the word
+- You have six attempts to find the word.
+
+## Deployment
+
+Build and export for production:
+
+```bash
+npm run build
+npm run start
+# or equivalently with yarn / pnpm / bun
+```
+
+Deploy to Vercel, Netlify, or any static hosting that supports Next.js.
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
